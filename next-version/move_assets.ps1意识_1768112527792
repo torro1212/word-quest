@@ -1,0 +1,29 @@
+$artifactsDir = "C:\Users\LENOVO\.gemini\antigravity\brain\70e52954-4d4a-4ebc-9917-73fecbe69359"
+$targetDir = "c:\Users\LENOVO\Desktop\shahar\Zaffo\word-quest\next-version\public\assets\images"
+
+# School World
+Copy-Item "$artifactsDir\school_book_1768111691234_1768111709900.png" "$targetDir\school\book.png"
+Copy-Item "$artifactsDir\school_pencil_1768111691235_1768111723613.png" "$targetDir\school\pencil.png"
+Copy-Item "$artifactsDir\school_bag_1768111691236_1768111737526.png" "$targetDir\school\bag.png"
+Copy-Item "$artifactsDir\school_chair_1768111691237_1768111750894.png" "$targetDir\school\chair.png"
+Copy-Item "$artifactsDir\school_desk_1768111691238_1768111763725.png" "$targetDir\school\desk.png"
+Copy-Item "$artifactsDir\school_eraser_1768111691239_1768111776896.png" "$targetDir\school\eraser.png"
+Copy-Item "$artifactsDir\school_crayons_1768111691240_1768111790676.png" "$targetDir\school\crayons.png"
+Copy-Item "$artifactsDir\school_notebook_1768111691241_1768111808171.png" "$targetDir\school\notebook.png"
+Copy-Item "$artifactsDir\school_ruler_1768111691242_1768111823248.png" "$targetDir\school\ruler.png"
+Copy-Item "$artifactsDir\school_scissors_1768111691243_1768111838393.png" "$targetDir\school\scissors.png"
+
+# Jobs World
+Copy-Item "$artifactsDir\jobs_doctor_1768111691244_1768111860444.png" "$targetDir\jobs\doctor.png"
+Copy-Item "$artifactsDir\jobs_teacher_1768111691245_1768111873929.png" "$targetDir\jobs\teacher.png"
+Copy-Item "$artifactsDir\jobs_police_1768111691246_1768111887291.png" "$targetDir\jobs\police.png"
+Copy-Item "$artifactsDir\jobs_firefighter_1768111691247_1768111901091.png" "$targetDir\jobs\firefighter.png"
+Copy-Item "$artifactsDir\jobs_chef_1768111691248_1768111915673.png" "$targetDir\jobs\chef.png"
+Copy-Item "$artifactsDir\jobs_pilot_1768111691249_1768111929240.png" "$targetDir\jobs\pilot.png"
+Copy-Item "$artifactsDir\jobs_farmer_1768111691250_1768111943782.png" "$targetDir\jobs\farmer.png"
+Copy-Item "$artifactsDir\jobs_nurse_1768111691251_1768111957545.png" "$targetDir\jobs\nurse.png"
+Copy-Item "$artifactsDir\jobs_builder_1768111691252_1768111970329.png" "$targetDir\jobs\builder.png"
+Copy-Item "$artifactsDir\jobs_artist_1768111691253_1768111984536.png" "$targetDir\jobs\artist.png"
+
+# House World Update
+Copy-Item "$artifactsDir\house_sofa_1768112527788_1768112627422.png" "$targetDir\house\sofa.png"
