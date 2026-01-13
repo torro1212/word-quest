@@ -34,8 +34,8 @@
     --btn-blue-dark: #2980b9;
 
     /* Typography */
-    --font-primary: 'Fredoka', 'Comic Sans MS', cursive;
-    --font-display: 'Baloo 2', 'Comic Sans MS', cursive;
+    --font-primary: var(--font-fredoka), 'Comic Sans MS', cursive;
+    --font-display: var(--font-baloo), 'Comic Sans MS', cursive;
 
     /* Spacing & Radii */
     --radius-round: 50px;
@@ -2635,12 +2635,14 @@ body {
         transform: translateX(5px);
     }
 }
+
 /* ==========================================
    MOBILE RESPONSIVE STYLES
    ========================================== */
 
 /* Small Mobile Devices (up to 480px) */
 @media screen and (max-width: 480px) {
+
     /* Header / Top Bar */
     #top-bar {
         padding: 8px 10px;
@@ -2674,7 +2676,8 @@ body {
         gap: 8px;
     }
 
-    .nav-btn, .sound-btn {
+    .nav-btn,
+    .sound-btn {
         width: 36px;
         height: 36px;
         font-size: 1rem;
@@ -2990,6 +2993,7 @@ body {
 
 /* Touch-friendly improvements */
 @media (hover: none) and (pointer: coarse) {
+
     .answer-btn,
     .mode-select-btn,
     .find-the-card,
@@ -3013,5 +3017,32 @@ body {
         padding-left: max(10px, env(safe-area-inset-left));
         padding-right: max(10px, env(safe-area-inset-right));
         padding-bottom: max(10px, env(safe-area-inset-bottom));
+    }
+}
+/* Mobile Responsive Adjustments */
+@media (max-width: 480px) {
+    :root {
+        --font-size-base: 16px;
+    }
+
+    .logo-subtitle {
+        font-size: 0.75rem; /* Increased from 0.5rem */
+    }
+
+    .mode-btn-desc {
+        font-size: 0.9rem; /* Increased from 0.8rem */
+    }
+
+    .mode-btn-name {
+        font-size: 1.2rem;
+    }
+
+    .splash-logo-container-v2 {
+        padding: 8px 15px;
+    }
+
+    /* Make buttons larger on mobile */
+    .mode-select-btn {
+        padding: 12px 15px;
     }
 }
