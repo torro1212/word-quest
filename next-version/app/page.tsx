@@ -12,12 +12,30 @@ interface Word {
   image: string;
 }
 
+interface MemoryCard {
+  id: number;
+  word: string;
+  image?: string; // If present, it's an image card
+  text?: string;  // If present, it's a word card
+  isFlipped: boolean;
+  isMatched: boolean;
+}
+
 interface World {
   name: string;
   icon: string;
   color: string;
   words: Word[];
   wrongOptions: string[];
+}
+
+interface Bubble {
+  id: number;
+  word: Word;
+  x: number; // percentage 0-100
+  speed: number; // duration in seconds
+  isPopped: boolean;
+  isWrong: boolean;
 }
 
 const WORLDS: Record<string, World> = {
@@ -51,9 +69,8 @@ const WORLDS: Record<string, World> = {
       { word: "Goldfish", image: "/assets/images/animals-pets/goldfish.png" },
       { word: "Dog", image: "/assets/images/animals/dog.png" },
       { word: "Cat", image: "/assets/images/animals/cat.png" },
-      { word: "Fish", image: "/assets/images/animals/fish.png" },
     ],
-    wrongOptions: ["Hamster", "Rabbit", "Turtle", "Parrot", "Goldfish", "Dog", "Cat", "Fish"],
+    wrongOptions: ["Hamster", "Rabbit", "Turtle", "Parrot", "Goldfish", "Dog", "Cat"],
   },
   animalsWild: {
     name: "Wild Animals",
@@ -92,11 +109,11 @@ const WORLDS: Record<string, World> = {
     icon: "🐿️",
     color: "#E91E63",
     words: [
-      { word: "Mouse", image: "/assets/images/animals-pets/hamster.png" }, // Placeholder
-      { word: "Squirrel", image: "/assets/images/animals-pets/hamster.png" }, // Placeholder
-      { word: "Hedgehog", image: "/assets/images/animals-pets/rabbit.png" }, // Placeholder
-      { word: "Raccoon", image: "/assets/images/animals/dog.png" }, // Placeholder
-      { word: "Snail", image: "/assets/images/animals-pets/turtle.png" }, // Placeholder
+      { word: "Mouse", image: "/assets/images/animals-small-cute/mouse.png" },
+      { word: "Squirrel", image: "/assets/images/animals-small-cute/squirrel.png" },
+      { word: "Hedgehog", image: "/assets/images/animals-small-cute/hedgehog.png" },
+      { word: "Raccoon", image: "/assets/images/animals-small-cute/raccoon.png" },
+      { word: "Snail", image: "/assets/images/animals-small-cute/snail.png" },
     ],
     wrongOptions: ["Mouse", "Squirrel", "Hedgehog", "Raccoon", "Snail"],
   },
@@ -105,11 +122,11 @@ const WORLDS: Record<string, World> = {
     icon: "🦉",
     color: "#00BCD4",
     words: [
-      { word: "Owl", image: "/assets/images/animals/bird.png" }, // Placeholder
-      { word: "Eagle", image: "/assets/images/animals/bird.png" }, // Placeholder
-      { word: "Parrot", image: "/assets/images/animals-pets/parrot.png" },
-      { word: "Penguin", image: "/assets/images/animals/duck.png" }, // Placeholder
-      { word: "Flamingo", image: "/assets/images/animals/bird.png" }, // Placeholder
+      { word: "Owl", image: "/assets/images/animals-birds/owl.png" },
+      { word: "Eagle", image: "/assets/images/animals-birds/eagle.png" },
+      { word: "Parrot", image: "/assets/images/animals-birds/parrot.png" },
+      { word: "Penguin", image: "/assets/images/animals-birds/penguin.png" },
+      { word: "Flamingo", image: "/assets/images/animals-birds/flamingo.png" },
     ],
     wrongOptions: ["Owl", "Eagle", "Parrot", "Penguin", "Flamingo"],
   },
@@ -498,32 +515,267 @@ export default function WordQuestGame() {
   const [isAnswering, setIsAnswering] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
+  const [showGameSwitchModal, setShowGameSwitchModal] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [currentOptions, setCurrentOptions] = useState<Word[]>([]);
   const [shakingButton, setShakingButton] = useState<number | null>(null);
   const [pulsingButton, setPulsingButton] = useState<number | null>(null);
   const [shuffledWords, setShuffledWords] = useState<Word[]>([]);
   const [mascotStatus, setMascotStatus] = useState<"idle" | "happy" | "sad">("idle");
-  const [gameMode, setGameMode] = useState<"imageToWord" | "wordToImage" | "findThe">("imageToWord");
+  const [gameMode, setGameMode] = useState<"imageToWord" | "wordToImage" | "findThe" | "memory">("imageToWord");
   const [findTheImages, setFindTheImages] = useState<Word[]>([]);
   const [findTheTarget, setFindTheTarget] = useState<Word | null>(null);
   const [findTheShaking, setFindTheShaking] = useState<number | null>(null);
   const [findTheCorrect, setFindTheCorrect] = useState<number | null>(null);
 
+  // Memory Game State
+  const [memoryCards, setMemoryCards] = useState<MemoryCard[]>([]);
+  const [memoryFlipped, setMemoryFlipped] = useState<number[]>([]); // Indicies of flipped cards
+  const [isCheckingMatch, setIsCheckingMatch] = useState(false);
+
+  // Bubble Pop Game State
+  const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const [bubbleTarget, setBubbleTarget] = useState<Word | null>(null);
+  const [bubbleScore, setBubbleScore] = useState(0);
+  const [bubbleWaveActive, setBubbleWaveActive] = useState(false);
+  const [bubbleWaveInstruction, setBubbleWaveInstruction] = useState(false);
+
+  const [showWorldComplete, setShowWorldComplete] = useState(false);
+  const [nextWorldName, setNextWorldName] = useState("");
+
   const { speak, playCorrect, playWrong, isMuted, setIsMuted } = useAudioSystem();
+  const bubbleIdCounter = useRef(0);
+  const bubbleSpawnerRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentWorld = WORLDS[WORLD_ORDER[currentWorldIndex]];
   const totalQuestions = currentWorld.words.length;
 
-  const startGame = (mode: "imageToWord" | "wordToImage" | "findThe") => {
+  const startGame = (mode: "imageToWord" | "wordToImage" | "findThe" | "memory" | "bubblePop") => {
     setGameMode(mode);
     setGameState("playing");
     const shuffled = shuffleArray([...currentWorld.words]);
     setShuffledWords(shuffled);
 
     if (mode === "findThe") {
-      // Setup first Find The round
       setupFindTheRound(shuffled, 0);
+    } else if (mode === "memory") {
+      setupMemoryGame(currentWorld.words);
+    } else if (mode === "bubblePop") {
+      setupBubbleWave(shuffled);
+    }
+  };
+
+  const setupBubbleWave = (words: Word[]) => {
+    // Pick a random target
+    const target = words[Math.floor(Math.random() * words.length)];
+    setBubbleTarget(target);
+    setBubbleScore(0);
+    setBubbles([]);
+
+    // Speak instruction
+    speak(`Pop the ${target.word}!`);
+
+    // Start Wave immediately (small delay for audio)
+    setTimeout(() => {
+      setBubbleWaveActive(true);
+    }, 500);
+  };
+
+  // Bubble Spawning Logic
+  useEffect(() => {
+    if (gameMode === 'bubblePop' && bubbleWaveActive && bubbleTarget) {
+      bubbleSpawnerRef.current = setInterval(() => {
+        const isTarget = Math.random() < 0.35; // 35% chance of target
+        let word: Word;
+
+        if (isTarget) {
+          word = bubbleTarget;
+        } else {
+          // Pick a distractor
+          const distractors = currentWorld.words.filter(w => w.word !== bubbleTarget.word);
+          word = distractors[Math.floor(Math.random() * distractors.length)];
+        }
+
+        const newBubble: Bubble = {
+          id: bubbleIdCounter.current++,
+          word: word,
+          x: Math.random() * 80 + 10, // 10% to 90%
+          speed: Math.random() * 3 + 4, // 4s to 7s
+          isPopped: false,
+          isWrong: false
+        };
+
+        setBubbles(prev => [...prev, newBubble]);
+
+        // Cleanup old bubbles (simple optimization to keep array size manageable)
+        if (bubbles.length > 20) {
+          setBubbles(prev => prev.slice(prev.length - 15));
+        }
+
+      }, 1200); // New bubble every 1.2s
+    }
+
+    return () => {
+      if (bubbleSpawnerRef.current) clearInterval(bubbleSpawnerRef.current);
+    };
+  }, [gameMode, bubbleWaveActive, bubbleTarget, currentWorld, bubbles.length]);
+
+  const handleBubbleClick = (bubbleId: number) => {
+    const bubble = bubbles.find(b => b.id === bubbleId);
+    if (!bubble || bubble.isPopped || bubble.isWrong) return;
+
+    if (bubble.word.word === bubbleTarget?.word) {
+      // Correct!
+      playCorrect();
+      speak(bubble.word.word);
+
+      // Mark as popped
+      setBubbles(prev => prev.map(b =>
+        b.id === bubbleId ? { ...b, isPopped: true } : b
+      ));
+
+      // Update score and check win condition
+      const newScore = bubbleScore + 1;
+      setBubbleScore(newScore);
+
+      if (newScore >= 5) {
+        endBubbleWave();
+      }
+
+      // Remove after animation
+      setTimeout(() => {
+        setBubbles(prev => prev.filter(b => b.id !== bubbleId));
+      }, 500);
+    } else {
+      // Wrong!
+      playWrong();
+      setBubbles(prev => prev.map(b =>
+        b.id === bubbleId ? { ...b, isWrong: true } : b
+      ));
+
+      // Reset wrong state after animation
+      setTimeout(() => {
+        setBubbles(prev => prev.map(b =>
+          b.id === bubbleId ? { ...b, isWrong: false } : b
+        ));
+      }, 500);
+    }
+  };
+
+  const endBubbleWave = () => {
+    setBubbleWaveActive(false);
+    if (bubbleSpawnerRef.current) clearInterval(bubbleSpawnerRef.current);
+    setBubbles([]);
+    speak("Great job!");
+
+    setTimeout(() => {
+      // World Complete or Next Wave logic? 
+      // For MVP, let's treat 5 pops as "Round Complete" -> Next World
+      if (currentWorldIndex < WORLD_ORDER.length - 1) {
+        const nextWorld = WORLDS[WORLD_ORDER[currentWorldIndex + 1]];
+        setNextWorldName(nextWorld.name);
+        setShowWorldComplete(true);
+      } else {
+        setShowComplete(true);
+      }
+    }, 1000);
+  };
+
+  const setupMemoryGame = (worldWords: Word[]) => {
+    // Select 6 random words for the board (or fewer if world has less)
+    const selectedWords = shuffleArray([...worldWords]).slice(0, 6);
+
+    let cards: MemoryCard[] = [];
+    selectedWords.forEach((w, index) => {
+      // Image Card
+      cards.push({
+        id: index * 2,
+        word: w.word,
+        image: w.image,
+        isFlipped: false,
+        isMatched: false
+      });
+      // Word Card
+      cards.push({
+        id: index * 2 + 1,
+        word: w.word,
+        text: w.word,
+        isFlipped: false,
+        isMatched: false
+      });
+    });
+
+    setMemoryCards(shuffleArray(cards));
+    setMemoryFlipped([]);
+    setIsCheckingMatch(false);
+    setStars(0);
+  };
+
+  const handleMemoryCardClick = (index: number) => {
+    if (isCheckingMatch || memoryCards[index].isFlipped || memoryCards[index].isMatched) return;
+
+    // Flip the card
+    const newCards = [...memoryCards];
+    newCards[index].isFlipped = true;
+    setMemoryCards(newCards);
+
+    // Play sound if it's a word card
+    if (newCards[index].text) {
+      speak(newCards[index].text!);
+    }
+
+    const newFlipped = [...memoryFlipped, index];
+    setMemoryFlipped(newFlipped);
+
+    // Check for match
+    if (newFlipped.length === 2) {
+      setIsCheckingMatch(true);
+      const card1 = newCards[newFlipped[0]];
+      const card2 = newCards[newFlipped[1]];
+
+      if (card1.word === card2.word) {
+        // Match found!
+        setFeedbackText("Perfect Pair! ⭐");
+        setStars(s => s + 1);
+        playCorrect();
+
+        setTimeout(() => {
+          const matchedCards = [...newCards];
+          matchedCards[newFlipped[0]].isMatched = true;
+          matchedCards[newFlipped[1]].isMatched = true;
+          setMemoryCards(matchedCards);
+          setMemoryFlipped([]);
+          setIsCheckingMatch(false);
+          setFeedbackText("");
+
+          // Check Win Condition
+          if (matchedCards.every(c => c.isMatched)) {
+            // World Complete
+            setTimeout(() => {
+              if (currentWorldIndex < WORLD_ORDER.length - 1) {
+                const nextWorld = WORLDS[WORLD_ORDER[currentWorldIndex + 1]];
+                setNextWorldName(nextWorld.name);
+                setShowWorldComplete(true);
+              } else {
+                setShowComplete(true);
+              }
+            }, 1000);
+          }
+        }, 1000);
+      } else {
+        // No match
+        playWrong();
+        setMascotStatus("sad");
+        setTimeout(() => {
+          const resetCards = [...newCards];
+          resetCards[newFlipped[0]].isFlipped = false;
+          resetCards[newFlipped[1]].isFlipped = false;
+          setMemoryCards(resetCards);
+          setMemoryFlipped([]);
+          setIsCheckingMatch(false);
+          setMascotStatus("idle");
+        }, 1500);
+      }
     }
   };
 
@@ -548,6 +800,10 @@ export default function WordQuestGame() {
       if (gameMode === "findThe") {
         setupFindTheRound(newShuffled, 0);
         setCurrentQuestionIndex(0);
+      } else if (gameMode === "memory") {
+        setupMemoryGame(currentWorld.words);
+      } else if (gameMode === "bubblePop") {
+        setupBubbleWave(currentWorld.words);
       }
     }
   }, [currentWorldIndex, currentWorld.words, gameState]);
@@ -559,15 +815,20 @@ export default function WordQuestGame() {
     if (currentQuestion) {
       const otherWords = currentWorld.words.filter(w => w.word !== currentQuestion.word);
       const shuffledOthers = shuffleArray([...otherWords]);
-      const wrongOptions = shuffledOthers.slice(0, 2);
+
+      // Use 3 wrong options for WordToImage (Read & Match) for a 2x2 grid
+      // Use 2 wrong options for ImageToWord (Look & Find)
+      const numWrong = gameMode === 'wordToImage' ? 3 : 2;
+
+      const wrongOptions = shuffledOthers.slice(0, numWrong);
       const options = shuffleArray([currentQuestion, ...wrongOptions]);
       setCurrentOptions(options);
     }
-  }, [currentQuestionIndex, currentWorldIndex, currentQuestion, currentWorld]);
+  }, [currentQuestionIndex, currentWorldIndex, currentQuestion, currentWorld, gameMode]);
 
   // Speak word when question changes (for imageToWord and wordToImage modes)
   useEffect(() => {
-    if (gameState === "playing" && currentQuestion && gameMode !== "findThe") {
+    if (gameState === "playing" && currentQuestion && gameMode !== "findThe" && gameMode !== "memory" && gameMode !== "bubblePop") {
       const timer = setTimeout(() => {
         speak(currentQuestion.word);
       }, 500);
@@ -593,8 +854,7 @@ export default function WordQuestGame() {
       setIsAnswering(true);
       setPulsingButton(buttonIndex);
       setMascotStatus("happy");
-      playCorrect();
-      speak(currentQuestion.word);
+      // Audio removed as per request
       setFeedbackText(`⭐ ${currentQuestion.word}!`);
       setStars((s) => s + 1);
       setShowCelebration(true);
@@ -608,10 +868,11 @@ export default function WordQuestGame() {
         if (currentQuestionIndex < totalQuestions - 1) {
           setCurrentQuestionIndex((q) => q + 1);
         } else {
-          // World complete - move to next world if possible
+          // World complete - show transition screen
           if (currentWorldIndex < WORLD_ORDER.length - 1) {
-            setCurrentWorldIndex(currentWorldIndex + 1);
-            setCurrentQuestionIndex(0);
+            const nextWorld = WORLDS[WORLD_ORDER[currentWorldIndex + 1]];
+            setNextWorldName(nextWorld.name);
+            setShowWorldComplete(true);
           } else {
             setShowComplete(true);
           }
@@ -622,7 +883,7 @@ export default function WordQuestGame() {
       // Wrong answer
       setShakingButton(buttonIndex);
       setMascotStatus("sad");
-      playWrong();
+      // Audio removed as per request
       setTimeout(() => {
         setShakingButton(null);
         setMascotStatus("idle");
@@ -654,7 +915,28 @@ export default function WordQuestGame() {
     setShowComplete(false);
   };
 
-  const SplashScreen: React.FC<{ onStart: (mode: "imageToWord" | "wordToImage" | "findThe") => void }> = ({ onStart }) => {
+  const handleContinueToNextWorld = () => {
+    setShowWorldComplete(false);
+
+    const nextIndex = currentWorldIndex + 1;
+    setCurrentWorldIndex(nextIndex);
+    setCurrentQuestionIndex(0);
+    setStars(0);
+
+    // Re-initialize logic for the new world depending on mode
+    // Note: bubblePop is handled by useEffect that watches currentWorldIndex
+    const nextWorld = WORLDS[WORLD_ORDER[nextIndex]];
+    if (gameMode === 'memory') {
+      setupMemoryGame(nextWorld.words);
+    } else if (gameMode === 'findThe') {
+      const newShuffled = shuffleArray([...nextWorld.words]);
+      setShuffledWords(newShuffled);
+      setupFindTheRound(newShuffled, 0);
+    }
+    // bubblePop is triggered by useEffect watching currentWorldIndex
+  };
+
+  const SplashScreen: React.FC<{ onStart: (mode: "imageToWord" | "wordToImage" | "findThe" | "memory") => void }> = ({ onStart }) => {
     return (
       <div id="splash-screen" style={{
         backgroundImage: "url('/assets/images/HOME-BACK.png')",
@@ -749,6 +1031,22 @@ export default function WordQuestGame() {
                     <span className="mode-btn-desc">Hear word, tap image</span>
                   </div>
                 </button>
+
+                <button className="mode-select-btn memory-mode-btn" onClick={() => onStart("memory")}>
+                  <div className="mode-btn-icon">🧠</div>
+                  <div className="mode-btn-text">
+                    <span className="mode-btn-name">Memory Match</span>
+                    <span className="mode-btn-desc">Match Pair: Image + Word</span>
+                  </div>
+                </button>
+
+                <button className="mode-select-btn bubble-mode-btn" onClick={() => onStart("bubblePop")}>
+                  <div className="mode-btn-icon">🫧</div>
+                  <div className="mode-btn-text">
+                    <span className="mode-btn-name">Bubble Pop</span>
+                    <span className="mode-btn-desc">Pop the floating bubbles!</span>
+                  </div>
+                </button>
               </div>
             </div>
           </div>
@@ -827,18 +1125,8 @@ export default function WordQuestGame() {
           </button>
           <button
             className="nav-btn switch-btn"
-            onClick={() => {
-              const modes: ("imageToWord" | "wordToImage" | "findThe")[] = ["imageToWord", "wordToImage", "findThe"];
-              const currentIndex = modes.indexOf(gameMode);
-              const nextMode = modes[(currentIndex + 1) % modes.length];
-              setGameMode(nextMode);
-              setCurrentQuestionIndex(0);
-              setStars(0);
-              if (nextMode === "findThe") {
-                setupFindTheRound(shuffledWords.length > 0 ? shuffledWords : currentWorld.words, 0);
-              }
-            }}
-            title={gameMode === "imageToWord" ? "Switch to Read Mode" : gameMode === "wordToImage" ? "Switch to Find Mode" : "Switch to Look Mode"}
+            onClick={() => setShowGameSwitchModal(true)}
+            title="Switch Game Mode"
           >
             🔄
           </button>
@@ -851,7 +1139,7 @@ export default function WordQuestGame() {
           </button>
           <div className="stat-item" id="stars-display">
             <span className="stat-icon">⭐</span>
-            <span id="stars-count">{stars}</span>
+            <span id="stars-count">{gameMode === 'memory' ? `${stars}/6` : gameMode === 'bubblePop' ? `${bubbleScore}/5` : stars}</span>
           </div>
         </div>
       </header>
@@ -881,11 +1169,7 @@ export default function WordQuestGame() {
                     if (findTheTarget && item.word === findTheTarget.word) {
                       // Correct!
                       setFindTheCorrect(index);
-                      playCorrect();
-                      speak("Great job!");
-                      setTimeout(() => {
-                        speak(`Yes! This is a ${findTheTarget.word}!`);
-                      }, 800);
+                      // Audio removed as per request
                       setTimeout(() => {
                         // Next round
                         const nextIndex = currentQuestionIndex + 1;
@@ -897,23 +1181,18 @@ export default function WordQuestGame() {
                           // World complete - move to next world
                           setStars(s => s + 1);
                           if (currentWorldIndex < WORLD_ORDER.length - 1) {
-                            const nextWorldIndex = currentWorldIndex + 1;
-                            setCurrentWorldIndex(nextWorldIndex);
-                            setCurrentQuestionIndex(0);
-                            const nextWorld = WORLDS[WORLD_ORDER[nextWorldIndex]];
-                            const newShuffled = shuffleArray([...nextWorld.words]);
-                            setShuffledWords(newShuffled);
-                            setupFindTheRound(newShuffled, 0);
+                            const nextWorld = WORLDS[WORLD_ORDER[currentWorldIndex + 1]];
+                            setNextWorldName(nextWorld.name);
+                            setShowWorldComplete(true);
                           } else {
                             setShowComplete(true);
                           }
                         }
-                      }, 2500);
+                      }, 1500); // Reduced delay since no speech
                     } else {
                       // Wrong - try again
                       setFindTheShaking(index);
-                      playWrong();
-                      speak("Try again");
+                      // Audio removed as per request
                       setTimeout(() => setFindTheShaking(null), 500);
                     }
                   }}
@@ -930,6 +1209,75 @@ export default function WordQuestGame() {
               ))}
             </div>
           </div>
+        ) : gameMode === "memory" ? (
+          /* Memory Game Mode */
+          <div className="memory-grid-container">
+            <div className="memory-grid">
+              {memoryCards.map((card, index) => (
+                <button
+                  key={`${card.id}-${index}`}
+                  className={`memory-card ${card.isFlipped ? 'flipped' : ''} ${card.isMatched ? 'matched' : ''}`}
+                  onClick={() => handleMemoryCardClick(index)}
+                  disabled={card.isFlipped || card.isMatched}
+                >
+                  <div className="memory-card-inner">
+                    <div className="memory-card-front">
+                      <span className="card-question-mark">❓</span>
+                    </div>
+                    <div className="memory-card-back">
+                      {card.image ? (
+                        <img src={card.image} alt="card" className="memory-img" />
+                      ) : (
+                        <span className="memory-text">{card.text}</span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : gameMode === "bubblePop" ? (
+          /* Bubble Pop Game Mode */
+          <>
+            {/* Persistent Target Display */}
+            {bubbleTarget && (
+              <div className="bubble-target-wrapper">
+                <div className="bubble-target-display">
+                  <span className="bubble-target-label">Pop the:</span>
+                  <img src={bubbleTarget.image} className="bubble-target-img" alt={bubbleTarget.word} />
+                  <span className="bubble-target-word">{bubbleTarget.word}</span>
+                </div>
+              </div>
+            )}
+            <div className="bubble-game-container">
+              <div className="bubbles-area">
+                {bubbles.map(bubble => (
+                  <div
+                    key={bubble.id}
+                    className={`bubble-item ${bubble.isPopped ? 'popped' : ''} ${bubble.isWrong ? 'wrong' : ''}`}
+                    style={{
+                      left: `${bubble.x}%`,
+                      animationDuration: `${bubble.speed}s`
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleBubbleClick(bubble.id);
+                    }}
+                    onAnimationEnd={(e) => {
+                      if (e.animationName.includes('rise')) {
+                        setBubbles(prev => prev.filter(b => b.id !== bubble.id));
+                      }
+                    }}
+                  >
+                    <div className="bubble-content">
+                      <img src={bubble.word.image} alt={bubble.word.word} />
+                    </div>
+                    {bubble.isPopped && <div className="bubble-pop-effect">💦</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         ) : gameMode === "imageToWord" ? (
           <div id="animal-frame" className="image-mode">
             <img
@@ -946,46 +1294,49 @@ export default function WordQuestGame() {
             </div>
             <button className="big-speaker-icon" onClick={() => speak(currentQuestion.word)}>🔊</button>
           </div>
-        )}
+        )
+        }
 
-        {/* Answer Buttons - not shown in Find The mode */}
-        {gameMode !== "findThe" && (
-          <div id="answer-buttons" className={gameMode}>
-            {currentOptions.map((option, index) => (
-              <div className={`answer-option ${gameMode}`} key={index}>
-                <button
-                  className={`answer-btn ${["green", "red", "blue"][index]} ${shakingButton === index ? "shake" : ""
-                    } ${pulsingButton === index ? "pulse" : ""} ${gameMode}-btn`}
-                  onClick={() => handleAnswer(option.word, index)}
-                  disabled={isAnswering}
-                >
-                  {gameMode === "imageToWord" ? (
-                    option.word
-                  ) : (
-                    <img src={option.image} alt={option.word} className="option-img" />
-                  )}
-                  {pulsingButton === index && (
-                    <>
-                      <div className="answer-checkmark">✅</div>
-                      <div className="answer-burst"></div>
-                    </>
-                  )}
-                </button>
-                {gameMode === "imageToWord" && (
+        {/* Answer Buttons - not shown in Find The, Memory, or Bubble Pop mode */}
+        {
+          gameMode !== "findThe" && gameMode !== "memory" && gameMode !== "bubblePop" && (
+            <div id="answer-buttons" className={gameMode}>
+              {currentOptions.map((option, index) => (
+                <div className={`answer-option ${gameMode}`} key={index}>
                   <button
-                    className="speaker-icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      speak(option.word);
-                    }}
+                    className={`answer-btn ${["green", "red", "blue"][index]} ${shakingButton === index ? "shake" : ""
+                      } ${pulsingButton === index ? "pulse" : ""} ${gameMode}-btn`}
+                    onClick={() => handleAnswer(option.word, index)}
+                    disabled={isAnswering}
                   >
-                    🔊
+                    {gameMode === "imageToWord" ? (
+                      option.word
+                    ) : (
+                      <img src={option.image} alt={option.word} className="option-img" />
+                    )}
+                    {pulsingButton === index && (
+                      <>
+                        <div className="answer-checkmark">✅</div>
+                        <div className="answer-burst"></div>
+                      </>
+                    )}
                   </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+                  {gameMode === "imageToWord" && (
+                    <button
+                      className="speaker-icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        speak(option.word);
+                      }}
+                    >
+                      🔊
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
+        }
 
         {/* Gameplay Mascot - Floating Helper */}
         <div id="mascot-container" className="gameplay-mascot">
@@ -1000,55 +1351,160 @@ export default function WordQuestGame() {
           />
         </div>
 
-      </main>
+      </main >
 
       {/* Feedback - fixed at bottom of screen, outside main */}
-      <div id="feedback-area">
+      < div id="feedback-area" >
         <div id="feedback-text" className={feedbackText ? "show" : ""}>
           {feedbackText || "\u00A0"}
         </div>
-      </div>
+      </div >
 
       {/* Celebration Overlay */}
-      {showCelebration && (
-        <div id="celebration-overlay" className="overlay">
-          <div id="star-animation">⭐</div>
-          <div className="sparkles">
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={i}
-                className="sparkle"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  background: ["#FFD700", "#FFA500", "#FFFF00"][Math.floor(Math.random() * 3)],
-                  animationDelay: `${Math.random() * 0.3}s`,
-                }}
-              />
-            ))}
+      {
+        showCelebration && (
+          <div id="celebration-overlay" className="overlay">
+            <div id="star-animation">⭐</div>
+            <div className="sparkles">
+              {[...Array(15)].map((_, i) => (
+                <div
+                  key={i}
+                  className="sparkle"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    background: ["#FFD700", "#FFA500", "#FFFF00"][Math.floor(Math.random() * 3)],
+                    animationDelay: `${Math.random() * 0.3}s`,
+                  }}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
+
+      {/* World Complete Transition Overlay */}
+      {
+        showWorldComplete && (
+          <div id="world-complete-overlay" className="overlay small-popup">
+            <div className="world-complete-content compact">
+              <div className="trophy-icon-small">🏆</div>
+              <h2 className="world-complete-title-small">{currentWorld.name} Complete!</h2>
+
+              <div className="next-world-preview-compact">
+                <span className="next-label-small">Next:</span>
+                <span className="next-icon-small">{WORLDS[WORLD_ORDER[currentWorldIndex + 1]]?.icon}</span>
+                <span className="next-name-small">{nextWorldName}</span>
+              </div>
+
+              <button
+                className="continue-btn-small"
+                onClick={handleContinueToNextWorld}
+              >
+                Continue ➔
+              </button>
+            </div>
+          </div>
+        )
+      }
 
       {/* Complete Overlay */}
-      {showComplete && (
-        <div id="completion-overlay" className="overlay">
-          <div className="completion-content">
-            <h1 className="completion-title">Amazing!</h1>
-            <p className="completion-message">You completed the {currentWorld.name} adventure!</p>
-            <div className="celebration-mascot">
-              <img src="/assets/images/hero-mascot.png" alt="Mascot" className="hero-mascot-img" style={{ maxWidth: '150px' }} />
+      {
+        showComplete && (
+          <div id="completion-overlay" className="overlay">
+            <div className="completion-content">
+              <h1 className="completion-title">Amazing!</h1>
+              <p className="completion-message">You completed the {currentWorld.name} adventure!</p>
+              <div className="celebration-mascot">
+                <img src="/assets/images/hero-mascot.png" alt="Mascot" className="hero-mascot-img" style={{ maxWidth: '150px' }} />
+              </div>
+              <button
+                id="play-again-btn"
+                className="restart-btn"
+                onClick={currentWorldIndex < WORLD_ORDER.length - 1 ? handleNextWorld : handlePlayAgain}
+              >
+                {currentWorldIndex < WORLD_ORDER.length - 1 ? "Next World ➔" : "Play Again ↻"}
+              </button>
             </div>
-            <button
-              id="play-again-btn"
-              className="restart-btn"
-              onClick={currentWorldIndex < WORLD_ORDER.length - 1 ? handleNextWorld : handlePlayAgain}
-            >
-              {currentWorldIndex < WORLD_ORDER.length - 1 ? "Next World ➔" : "Play Again ↻"}
-            </button>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+
+      {/* Game Switch Modal */}
+      {
+        showGameSwitchModal && (
+          <div id="game-switch-modal" className="overlay small-popup">
+            <div className="game-switch-content compact">
+              <div className="modal-header">
+                <h2>Select Game</h2>
+                <button className="close-btn-text" onClick={() => setShowGameSwitchModal(false)}>×</button>
+              </div>
+              <div className="game-options-list">
+                <button
+                  className={`game-option-btn ${gameMode === 'imageToWord' ? 'active' : ''}`}
+                  onClick={() => {
+                    startGame('imageToWord');
+                    setCurrentQuestionIndex(0);
+                    setStars(0);
+                    setShowGameSwitchModal(false);
+                  }}
+                >
+                  <span className="option-icon">🖼️</span>
+                  <span className="option-text">Look & Find</span>
+                </button>
+                <button
+                  className={`game-option-btn ${gameMode === 'wordToImage' ? 'active' : ''}`}
+                  onClick={() => {
+                    startGame('wordToImage');
+                    setCurrentQuestionIndex(0);
+                    setStars(0);
+                    setShowGameSwitchModal(false);
+                  }}
+                >
+                  <span className="option-icon">Abc</span>
+                  <span className="option-text">Read & Match</span>
+                </button>
+                <button
+                  className={`game-option-btn ${gameMode === 'findThe' ? 'active' : ''}`}
+                  onClick={() => {
+                    startGame('findThe');
+                    setCurrentQuestionIndex(0);
+                    setStars(0);
+                    setShowGameSwitchModal(false);
+                  }}
+                >
+                  <span className="option-icon">👂</span>
+                  <span className="option-text">Find the...</span>
+                </button>
+                <button
+                  className={`game-option-btn ${gameMode === 'memory' ? 'active' : ''}`}
+                  onClick={() => {
+                    startGame('memory');
+                    setCurrentQuestionIndex(0);
+                    setStars(0);
+                    setShowGameSwitchModal(false);
+                  }}
+                >
+                  <span className="option-icon">🧠</span>
+                  <span className="option-text">Memory Match</span>
+                </button>
+                <button
+                  className={`game-option-btn ${gameMode === 'bubblePop' ? 'active' : ''}`}
+                  onClick={() => {
+                    startGame('bubblePop');
+                    setCurrentQuestionIndex(0);
+                    setStars(0);
+                    setShowGameSwitchModal(false);
+                  }}
+                >
+                  <span className="option-icon">🫧</span>
+                  <span className="option-text">Bubble Pop</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 }
