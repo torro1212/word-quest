@@ -307,94 +307,51 @@ const WORLDS: Record<string, World> = {
     ],
     wrongOptions: ["Doctor", "Teacher", "Police", "Firefighter", "Chef", "Pilot", "Farmer", "Nurse", "Builder", "Artist"],
   },
-  farmAnimals: {
-    name: "Farm Animals",
-    icon: "🚜",
-    color: "#8BC34A",
+  numbersWorld: {
+    name: "Numbers World",
+    icon: "🔢",
+    color: "#9C27B0",
     words: [
-      { word: "Horse", image: "/assets/images/animals-farm/horse.png" },
-      { word: "Sheep", image: "/assets/images/animals-farm/sheep.png" },
-      { word: "Goat", image: "/assets/images/animals-farm/goat.png" },
-      { word: "Chicken", image: "/assets/images/animals-farm/chicken.png" },
-      { word: "Rooster", image: "/assets/images/animals-farm/rooster.png" },
-      { word: "Turkey", image: "/assets/images/animals-farm/turkey.png" },
-      { word: "Donkey", image: "/assets/images/animals-farm/donkey.png" },
+      { word: "One", image: "/assets/images/numbers/one.png" },
+      { word: "Two", image: "/assets/images/numbers/two.png" },
+      { word: "Three", image: "/assets/images/numbers/three.png" },
+      { word: "Four", image: "/assets/images/numbers/four.png" },
+      { word: "Five", image: "/assets/images/numbers/five.png" },
+      { word: "Six", image: "/assets/images/numbers/six.png" },
+      { word: "Seven", image: "/assets/images/numbers/seven.png" },
+      { word: "Eight", image: "/assets/images/numbers/eight.png" },
+      { word: "Nine", image: "/assets/images/numbers/nine.png" },
+      { word: "Ten", image: "/assets/images/numbers/ten.png" },
     ],
-    wrongOptions: ["Horse", "Sheep", "Goat", "Chicken", "Rooster", "Turkey", "Donkey"],
+    wrongOptions: ["One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"],
   },
-  petAnimals: {
-    name: "Pet Animals",
-    icon: "🏠",
-    color: "#FFEB3B",
+  foodWorld: {
+    name: "Food World",
+    icon: "🍔",
+    color: "#FF5722",
     words: [
-      { word: "Hamster", image: "/assets/images/animals-pets/hamster.png" },
-      { word: "Rabbit", image: "/assets/images/animals-pets/rabbit.png" },
-      { word: "Turtle", image: "/assets/images/animals-pets/turtle.png" },
-      { word: "Parrot", image: "/assets/images/animals-pets/parrot.png" },
-      { word: "Goldfish", image: "/assets/images/animals-pets/goldfish.png" },
+      { word: "Bread", image: "/assets/images/food/bread.png" },
+      { word: "Cheese", image: "/assets/images/food/cheese.png" },
+      { word: "Egg", image: "/assets/images/food/egg.png" },
+      { word: "Milk", image: "/assets/images/food/milk.png" },
+      { word: "Pizza", image: "/assets/images/food/pizza.png" },
+      { word: "Burger", image: "/assets/images/food/burger.png" },
+      { word: "Cake", image: "/assets/images/food/cake.png" },
+      { word: "Sandwich", image: "/assets/images/food/sandwich.png" },
+      { word: "Rice", image: "/assets/images/food/rice.png" },
+      { word: "Soup", image: "/assets/images/food/soup.png" },
     ],
-    wrongOptions: ["Hamster", "Rabbit", "Turtle", "Parrot", "Goldfish"],
-  },
-  wildAnimals: {
-    name: "Wild Animals",
-    icon: "🌴",
-    color: "#4CAF50",
-    words: [
-      { word: "Lion", image: "/assets/images/animals-wild/lion.png" },
-      { word: "Elephant", image: "/assets/images/animals-wild/elephant.png" },
-      { word: "Giraffe", image: "/assets/images/animals-wild/giraffe.png" },
-      { word: "Zebra", image: "/assets/images/animals-wild/zebra.png" },
-      { word: "Tiger", image: "/assets/images/animals-wild/tiger.png" },
-      { word: "Monkey", image: "/assets/images/animals-wild/monkey.png" },
-      { word: "Panda", image: "/assets/images/animals-wild/panda.png" },
-    ],
-    wrongOptions: ["Lion", "Elephant", "Giraffe", "Zebra", "Tiger", "Monkey", "Panda"],
-  },
-  seaAnimals: {
-    name: "Sea Animals",
-    icon: "🌊",
-    color: "#03A9F4",
-    words: [
-      { word: "Dolphin", image: "/assets/images/animals-sea/dolphin.png" },
-      { word: "Whale", image: "/assets/images/animals-sea/whale.png" },
-      { word: "Shark", image: "/assets/images/animals-sea/shark.png" },
-      { word: "Octopus", image: "/assets/images/animals-sea/octopus.png" },
-      { word: "Crab", image: "/assets/images/animals-sea/crab.png" },
-      { word: "Seahorse", image: "/assets/images/animals-sea/seahorse.png" },
-      { word: "Starfish", image: "/assets/images/animals-sea/starfish.png" },
-    ],
-    wrongOptions: ["Dolphin", "Whale", "Shark", "Octopus", "Crab", "Seahorse", "Starfish"],
-  },
-  cuteAnimals: {
-    name: "Cute Animals",
-    icon: "✨",
-    color: "#F06292",
-    words: [
-      { word: "Mouse", image: "/assets/images/animals-cute/mouse.png" },
-      { word: "Squirrel", image: "/assets/images/animals-cute/squirrel.png" },
-      { word: "Hedgehog", image: "/assets/images/animals-cute/hedgehog.png" },
-      { word: "Raccoon", image: "/assets/images/animals-cute/raccoon.png" },
-      { word: "Snail", image: "/assets/images/animals-cute/snail.png" },
-    ],
-    wrongOptions: ["Mouse", "Squirrel", "Hedgehog", "Raccoon", "Snail"],
-  },
-  birdAnimals: {
-    name: "Birds",
-    icon: "🦜",
-    color: "#81D4FA",
-    words: [
-      { word: "Owl", image: "/assets/images/animals-birds/owl.png" },
-      { word: "Eagle", image: "/assets/images/animals-birds/eagle.png" },
-      { word: "Parrot", image: "/assets/images/animals-birds/parrot.png" },
-      { word: "Penguin", image: "/assets/images/animals-birds/penguin.png" },
-      { word: "Flamingo", image: "/assets/images/animals-birds/flamingo.png" },
-    ],
-    wrongOptions: ["Owl", "Eagle", "Parrot", "Penguin", "Flamingo"],
+    wrongOptions: ["Bread", "Cheese", "Egg", "Milk", "Pizza", "Burger", "Cake", "Sandwich", "Rice", "Soup"],
   },
 };
 
 const WORLD_ORDER = [
-  "animalValley",
+  "animalsFarm",
+  "animalsPets",
+  "animalsWild",
+  "animalsSea",
+  "animalsCute",
+  "animalsBirds",
   "colorWorld",
   "shapeWorld",
   "fruitWorld",
@@ -406,12 +363,8 @@ const WORLD_ORDER = [
   "natureWorld",
   "schoolWorld",
   "jobsWorld",
-  "farmAnimals",
-  "petAnimals",
-  "wildAnimals",
-  "seaAnimals",
-  "cuteAnimals",
-  "birdAnimals",
+  "numbersWorld",
+  "foodWorld",
 ];
 
 // ==========================================
@@ -744,30 +697,28 @@ export default function WordQuestGame() {
 
           {/* Logo Section */}
           <div className="splash-logo-container-v2">
-            <div className="splash-logo-badge">NEW!</div>
             <div className="splash-logo-v2">
               <span className="letter l1">W</span>
               <span className="letter l2">o</span>
               <span className="letter l3">r</span>
               <span className="letter l4">d</span>
-              <span className="space"> </span>
+              <span className="hyphen">-</span>
               <span className="letter l5">Q</span>
               <span className="letter l6">u</span>
               <span className="letter l7">e</span>
               <span className="letter l8">s</span>
               <span className="letter l9">t</span>
             </div>
-            <p className="splash-subtitle-v2">The Ultimate Learning Adventure! ✨</p>
-          </div>
-
-          {/* Hero Mascot */}
-          <div className="hero-mascot-container">
-            <img
-              src="/assets/images/hero-mascot.png"
-              alt="Zaffo Mascot"
-              className="hero-mascot-img"
-            />
-            <div className="mascot-shadow"></div>
+            <div className="subtitle-with-mascot">
+              <div className="subtitle-mascot">
+                <img
+                  src="/assets/images/hero-mascot.png"
+                  alt="Zaffo Mascot"
+                  className="subtitle-mascot-img"
+                />
+              </div>
+              <p className="splash-subtitle-v2">Learn & Play! ✨</p>
+            </div>
           </div>
 
           {/* Action Section */}
