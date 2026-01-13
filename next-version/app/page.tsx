@@ -522,7 +522,7 @@ export default function WordQuestGame() {
   const [pulsingButton, setPulsingButton] = useState<number | null>(null);
   const [shuffledWords, setShuffledWords] = useState<Word[]>([]);
   const [mascotStatus, setMascotStatus] = useState<"idle" | "happy" | "sad">("idle");
-  const [gameMode, setGameMode] = useState<"imageToWord" | "wordToImage" | "findThe" | "memory">("imageToWord");
+  const [gameMode, setGameMode] = useState<"imageToWord" | "wordToImage" | "findThe" | "memory" | "bubblePop">("imageToWord");
   const [findTheImages, setFindTheImages] = useState<Word[]>([]);
   const [findTheTarget, setFindTheTarget] = useState<Word | null>(null);
   const [findTheShaking, setFindTheShaking] = useState<number | null>(null);
@@ -936,7 +936,7 @@ export default function WordQuestGame() {
     // bubblePop is triggered by useEffect watching currentWorldIndex
   };
 
-  const SplashScreen: React.FC<{ onStart: (mode: "imageToWord" | "wordToImage" | "findThe" | "memory") => void }> = ({ onStart }) => {
+  const SplashScreen: React.FC<{ onStart: (mode: "imageToWord" | "wordToImage" | "findThe" | "memory" | "bubblePop") => void }> = ({ onStart }) => {
     return (
       <div id="splash-screen" style={{
         backgroundImage: "url('/assets/images/HOME-BACK.png')",
