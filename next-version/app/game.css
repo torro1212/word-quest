@@ -4042,3 +4042,134 @@ body {
         height: 60%;
     }
 }
+
+/* ==========================================
+   MOBILE RESPONSIVE LAYOUT FIXES
+   ========================================== */
+
+@media screen and (max-width: 500px) {
+
+    /* Move game area content higher up */
+    #game-area {
+        padding-top: 15px !important;
+        gap: 8px !important;
+    }
+
+    /* Smaller animal frame on mobile */
+    #animal-frame {
+        max-width: 200px !important;
+        padding: 8px !important;
+        border-radius: 25px !important;
+        border-width: 4px !important;
+    }
+
+    /* Word question frame smaller */
+    #word-question-frame {
+        padding: 20px 15px !important;
+        margin-top: 10px !important;
+    }
+
+    #question-word-text {
+        font-size: 2rem !important;
+    }
+
+    /* Answer buttons - force 2x2 grid on mobile */
+    #answer-buttons {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        max-width: 300px !important;
+        width: 95% !important;
+    }
+
+    #answer-buttons.wordToImage {
+        grid-template-columns: repeat(2, 1fr) !important;
+        max-width: 280px !important;
+    }
+
+    .answer-option {
+        min-width: unset !important;
+        max-width: unset !important;
+        width: 100% !important;
+    }
+
+    .answer-option.wordToImage {
+        min-height: 100px !important;
+        aspect-ratio: 1 / 1 !important;
+    }
+
+    .answer-btn {
+        padding: 12px 8px !important;
+        font-size: 1rem !important;
+        border-radius: 18px !important;
+    }
+
+    .wordToImage-btn {
+        padding: 5px !important;
+        border-radius: 15px !important;
+        height: 100% !important;
+    }
+
+    .option-img {
+        max-height: 80px !important;
+    }
+
+    /* Smaller celebration effects */
+    #celebration-overlay #celebration-star {
+        font-size: 4rem !important;
+    }
+
+    /* Top bar adjustments */
+    #top-bar {
+        padding: 6px 10px !important;
+    }
+
+    /* World sign smaller */
+    #world-sign {
+        padding: 4px 12px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Stats display smaller */
+    .stat-display {
+        padding: 4px 10px !important;
+        min-width: 40px !important;
+    }
+
+    .stats-count {
+        font-size: 0.9rem !important;
+    }
+
+    /* Navigation buttons smaller */
+    .nav-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1rem !important;
+    }
+
+    /* Find The Mode - smaller images grid */
+    .find-the-grid {
+        gap: 8px !important;
+        max-width: 280px !important;
+    }
+
+    .find-the-image-btn {
+        width: 60px !important;
+        height: 60px !important;
+    }
+
+    .find-the-image-btn img {
+        max-width: 45px !important;
+        max-height: 45px !important;
+    }
+
+    /* Memory game - smaller cards */
+    .memory-grid {
+        gap: 6px !important;
+        max-width: 280px !important;
+    }
+
+    .memory-card {
+        border-radius: 12px !important;
+    }
+}
